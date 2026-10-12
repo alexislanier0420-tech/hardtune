@@ -1,0 +1,30 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Plugin + tests",
+      "binaryDir": "${sourceDir}/build/default"
+    },
+    {
+      "name": "dsp-only",
+      "displayName": "DSP library + tests (no JUCE, fast)",
+      "binaryDir": "${sourceDir}/build/dsp-only",
+      "cacheVariables": {
+        "HARDTUNE_BUILD_PLUGIN": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "default", "configurePreset": "default", "configuration": "Release" },
+    { "name": "dsp-only", "configurePreset": "dsp-only", "configuration": "Release" }
+  ],
+  "testPresets": [
+    {
+      "name": "dsp-only",
+      "configurePreset": "dsp-only",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}
