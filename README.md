@@ -48,13 +48,19 @@ The built plugin ends up in `build/default/plugin/HardTune_artefacts/Release/`.
 
 ## Roadmap
 
+See [docs/DESIGN.md](docs/DESIGN.md) for the design decisions behind each step.
+
 - [x] Project setup: CMake, JUCE plugin shell, GoogleTest, CI on Windows, macOS and Linux
 - [x] Frequency/MIDI conversion and scale snapping, with tests
-- [ ] YIN pitch detection, tested on synthetic tones and recorded vocals
-- [ ] PSOLA pitch shifting
-- [ ] Retune speed and formant preservation
-- [ ] Latency and CPU benchmarks
-- [ ] Custom UI and demo video
+- [x] Benchmark harness, ring buffer, lock-free queue, RealtimeSanitizer in CI
+- [ ] YIN pitch detection and Voice Type setting
+- [ ] Downsampled and FFT-based YIN, with measured speedups
+- [ ] TD-PSOLA pitch shifting, latency reporting
+- [ ] Retune behavior and pluginval in CI
+- [ ] Python bindings and accuracy evaluation on MIR-1K
+- [ ] Browser demo (WebAssembly)
+- [ ] Pitch graph UI, demo video, first release
+- [ ] Technical write-up
 
 ## License
 

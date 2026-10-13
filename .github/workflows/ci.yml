@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  # Fast check: the DSP library and its unit tests, without JUCE, on all three platforms
+  # Fast check: the DSP library, unit tests and benchmarks, without JUCE, on all three platforms
   dsp-tests:
     strategy:
       fail-fast: false
@@ -20,6 +20,48 @@ jobs:
         run: cmake --build build --config Release --parallel
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
+      - name: Benchmarks (quick run to check they work)
+        shell: bash
+        run: |
+          bench=$(find build/benchmarks -type f \( -name hardtune_benchmarks -o -name hardtune_benchmarks.exe \) | head -n 1)
+          "$bench" --benchmark_min_time=0.05s
+
+  # Unit tests under Clang sanitizers:
+  #   address,undefined  memory errors and undefined behavior
+  #   thread             data races (exercises the lock-free queue stress test)
+  #   realtime           allocations, locks or other blocking calls inside HARDTUNE_NONBLOCKING functions
+  sanitizers:
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address-undefined, thread, realtime]
+        include:
+          - sanitizer: address-undefined
+            flags: address,undefined
+          - sanitizer: thread
+            flags: thread
+          - sanitizer: realtime
+            flags: realtime
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Clang 20
+        run: |
+          wget -qO llvm.sh https://apt.llvm.org/llvm.sh
+          sudo bash llvm.sh 20
+      - name: Allow ThreadSanitizer's memory layout on recent kernels
+        run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: Configure
+        run: >
+          cmake -B build
+          -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DHARDTUNE_BUILD_PLUGIN=OFF -DHARDTUNE_BUILD_BENCHMARKS=OFF
+          -DHARDTUNE_SANITIZER=${{ matrix.flags }}
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
 
   # Full plugin build (VST3 + Standalone, plus AU on macOS)
   plugin:
@@ -31,7 +73,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -B build -DHARDTUNE_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -DHARDTUNE_BUILD_TESTS=OFF -DHARDTUNE_BUILD_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build --config Release --parallel
       - name: Upload plugin

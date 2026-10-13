@@ -42,8 +42,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout HardTuneProcessor::createPar
 
 void HardTuneProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Pitch detector and shifter buffers get allocated here, never in processBlock
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    // All engine memory is allocated here, never in processBlock
+    engine.prepare (sampleRate, samplesPerBlock);
 }
 
 bool HardTuneProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -64,8 +64,7 @@ void HardTuneProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     for (auto channel = getTotalNumInputChannels(); channel < getTotalNumOutputChannels(); ++channel)
         buffer.clear (channel, 0, buffer.getNumSamples());
 
-    // Pass-through for now. Next steps: detect pitch (YIN), pick the target with
-    // hardtune::nearestScaleNote, then shift the audio (PSOLA) by the difference.
+    engine.process (buffer.getArrayOfWritePointers(), buffer.getNumChannels(), buffer.getNumSamples());
 }
 
 juce::AudioProcessorEditor* HardTuneProcessor::createEditor()

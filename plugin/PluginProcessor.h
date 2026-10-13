@@ -1,9 +1,11 @@
 #pragma once
 
+#include "hardtune/Engine.h"
+
 #include <juce_audio_processors/juce_audio_processors.h>
 
-// The plugin wrapper around the DSP code. For now it passes audio through unchanged and exposes
-// the parameters the pitch correction will use; the processing itself lives in dsp/.
+// The plugin wrapper around the DSP engine: parameters, state saving and the audio callback.
+// All signal processing lives in hardtune::Engine (dsp/), which doesn't depend on JUCE.
 class HardTuneProcessor final : public juce::AudioProcessor
 {
 public:
@@ -40,6 +42,7 @@ public:
 
 private:
     juce::AudioProcessorValueTreeState parameters;
+    hardtune::Engine engine;
 
     // Cached parameter pointers, read on the audio thread without locking
     std::atomic<float>* key = nullptr;

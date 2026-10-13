@@ -1,4 +1,5 @@
 add_library(hardtune_dsp STATIC
+    src/Engine.cpp
     src/Scale.cpp)
 
 target_include_directories(hardtune_dsp PUBLIC include)
